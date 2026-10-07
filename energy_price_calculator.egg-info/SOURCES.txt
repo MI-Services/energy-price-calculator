@@ -8,7 +8,9 @@ custom_components/energy_price_calculator/const.py
 custom_components/energy_price_calculator/sensor.py
 custom_components/energy_price_calculator/helpers/__init__.py
 custom_components/energy_price_calculator/helpers/api_client.py
+custom_components/energy_price_calculator/helpers/coordinator.py
 custom_components/energy_price_calculator/tests/__init__.py
+custom_components/energy_price_calculator/tests/conftest.py
 custom_components/energy_price_calculator/tests/test_api_client.py
 custom_components/energy_price_calculator/tests/test_binary_sensor.py
 custom_components/energy_price_calculator/tests/test_config_flow.py

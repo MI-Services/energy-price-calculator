@@ -8,7 +8,10 @@ actual Home Assistant sensor machinery.
 from datetime import datetime, timezone
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.energy_price_calculator.const import (
     CONF_API_KEY,
@@ -49,7 +52,7 @@ async def _setup(hass, aioclient_mock, day_body):
 
 def _count_today_calls(aioclient_mock):
     return len([
-        c for c in aioclient_mock.mock.call_args_list if "prices/today" in str(c.args)
+        c for c in aioclient_mock.mock_calls if "prices/today" in str(c[1])
     ])
 
 
@@ -124,6 +127,19 @@ class TestUtcToLocalMapping:
             dt_util.set_default_time_zone(original_time_zone)
 
 
+@pytest.fixture
+def amsterdam_tz():
+    """The 00:05 schedule is local time; the harness default is US/Pacific."""
+    from zoneinfo import ZoneInfo
+
+    from homeassistant.util import dt as dt_util
+
+    original = dt_util.get_default_time_zone()
+    dt_util.set_default_time_zone(ZoneInfo("Europe/Amsterdam"))
+    yield
+    dt_util.set_default_time_zone(original)
+
+
 class TestDailySchedule:
     """The one-call-per-day contract (werksessie 2026-10-04)."""
 
@@ -145,7 +161,9 @@ current-hour sensor,
         assert _count_today_calls(aioclient_mock) == 1
 
         # Move into the next hour and let HA process the time-change event
-        freezer.move_to(datetime(2026, 10, 3, 21, 30, 0, tzinfo=timezone.utc))
+        now = datetime(2026, 10, 3, 21, 30, 0, tzinfo=timezone.utc)
+        freezer.move_to(now)
+        async_fire_time_changed(hass, now)
         await hass.async_block_till_done()
         assert _count_today_calls(aioclient_mock) == 1
 
@@ -164,13 +182,15 @@ current-hour sensor,
             assert _count_today_calls(aioclient_mock) == 1
 
             # 00:05 local next day = 22:05 UTC same UTC-day (CEST)
-            freezer.move_to(datetime(2026, 10, 3, 22, 5, 0, tzinfo=timezone.utc))
+            now = datetime(2026, 10, 3, 22, 5, 0, tzinfo=timezone.utc)
+            freezer.move_to(now)
+            async_fire_time_changed(hass, now)
             await hass.async_block_till_done()
             assert _count_today_calls(aioclient_mock) == 2
         finally:
             dt_util.set_default_time_zone(original_time_zone)
 
-    async def test_failed_refresh_retries(self, hass, aioclient_mock, freezer):
+    async def test_failed_refresh_retries(self, hass, aioclient_mock, freezer, amsterdam_tz):
         """A failed daily refresh arms the 30-minute retry until success."""
         import aiohttp
 
@@ -182,13 +202,17 @@ current-hour sensor,
         # Daily refresh fails
         aioclient_mock.clear_requests()
         aioclient_mock.get(TODAY_URL, exc=aiohttp.ClientError("server down"))
-        freezer.move_to(datetime(2026, 10, 3, 22, 5, 0, tzinfo=timezone.utc))
+        now = datetime(2026, 10, 3, 22, 5, 0, tzinfo=timezone.utc)
+        freezer.move_to(now)
+        async_fire_time_changed(hass, now)
         await hass.async_block_till_done()
         assert _count_today_calls(aioclient_mock) == 1  # failed, will retry
 
         # Retry succeeds
         aioclient_mock.clear_requests()
         aioclient_mock.get(TODAY_URL, json=_day())
-        freezer.move_to(datetime(2026, 10, 3, 22, 35, 0, tzinfo=timezone.utc))
+        now = datetime(2026, 10, 3, 22, 35, 0, tzinfo=timezone.utc)
+        freezer.move_to(now)
+        async_fire_time_changed(hass, now)
         await hass.async_block_till_done()
         assert _count_today_calls(aioclient_mock) == 1

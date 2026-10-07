@@ -1,0 +1,55 @@
+blueprint:
+  name: Run Device During Cheapest Hours
+  description: >-
+    Turn a device on when the current hour belongs to the cheapest hours of
+    the day, and off otherwise. Uses a binary sensor from the
+    energy_price_calculator integration (e.g. goedkoopste_10_van_de_dag).
+  domain: automation
+  author: Maarten Meijer (@MaartenMJR)
+  source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
+  input:
+    cheap_hour_sensor:
+      name: Cheap hour sensor
+      description: >-
+        The binary sensor from energy_price_calculator that turns ON during
+        the cheapest hours (e.g. binary_sensor.goedkoopste_10_van_de_dag).
+      selector:
+        entity:
+          domain: binary_sensor
+    device_switch:
+      name: Device switch
+      description: The switch that controls the appliance.
+      selector:
+        target:
+          entity:
+            domain: switch
+
+mode: single
+max_exceeded: silent
+
+variables:
+  cheap_hour_sensor_var: !input cheap_hour_sensor
+  is_cheap: >-
+    {{ states(cheap_hour_sensor_var) == 'on' }}
+
+triggers:
+  - trigger: state
+    entity_id: !input cheap_hour_sensor
+    id: sensor_changed
+  - trigger: homeassistant
+    event: start
+    id: ha_start
+  - trigger: time_pattern
+    minutes: /15
+    id: periodic_check
+
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ is_cheap }}"
+    then:
+      - action: homeassistant.turn_on
+        target: !input device_switch
+    else:
+      - action: homeassistant.turn_off
+        target: !input device_switch

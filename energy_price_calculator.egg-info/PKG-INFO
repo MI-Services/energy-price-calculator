@@ -24,48 +24,58 @@ Requires-Dist: aiohttp>=3.10.0
 Requires-Dist: homeassistant>=2024.12.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0; extra == "dev"
-Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
 Requires-Dist: pytest-homeassistant-custom-component>=0.13.0; extra == "dev"
 Requires-Dist: pytest-freezer>=0.4.6; extra == "dev"
 
 # Home Assistant Dynamic Energy Price Calculator
 
-Een dunne display-client (thin client) voor het Dynamic Energy Pricing-platform:
-**alle prijsberekening gebeurt op de server** (ADR-0005). Dit component haalt
-consumentenprijzen en ranks op bij de server-API (ADR-0006) en rekent zelf niets.
+A thin display client for the Dynamic Energy Pricing platform: **all price
+calculation happens on the server** (ADR-0005). This component fetches
+consumer prices and ranks from the server API (ADR-0006) and computes
+nothing itself.
 
-## Functionaliteit
+## Functionality
 
-- Huidige uurprijs (consumentenprijs van je leverancier, inclusief belastingen)
-- 24 uurprijs-sensoren (één per lokaal uur)
-- Binary sensors "top-N goedkoopste uur" (top 2, 4, 6, 8, 12)
-- Leverancier wordt server-side bepaald via je API-key (geen lokale tariefconfiguratie)
+- Current hour price (your supplier consumer price, taxes included)
+- 24 hourly price sensors (one per local hour)
+- Percentage binary sensors: ON while the current hour is among the cheapest
+  10% .. 90% of the day (floor semantics: a sensor is never ON for more than
+  its percentage of the day)
+- The supplier is determined server-side via your API key (no local tariff
+  configuration)
+- One API request per day: the shared coordinator fetches the whole day once
+  (00:05 local, with retry on failure); hour-to-hour state changes are
+  computed locally without further requests
 
-## Installatie
+## Installation
 
-1. Kopieer `custom_components/energy_price_calculator/` naar je Home Assistant config
-2. Herstart Home Assistant
-3. Instellingen -> Apparaten & services -> Integratie toevoegen -> **Dynamic Energy Price Calculator**
-4. Vul in:
-   - **Server URL**: bijv. `https://api.mijservices.nl`
-   - **API-key**: je persoonlijke key (tegenwoordig: via MI Services)
-5. De integratie valideert de key direct tegen `/api/v1/me`
+1. Copy `custom_components/energy_price_calculator/` into your Home
+   Assistant configuration directory
+2. Restart Home Assistant
+3. Settings -> Devices & services -> Add integration -> **Dynamic Energy
+   Price Calculator**
+4. Fill in:
+   - **Server URL**: e.g. `https://api.mijservices.nl`
+   - **API key**: your personal key (via MI Services)
+5. The integration validates the key immediately against `/api/v1/me`
 
 ## Sensors
 
-- `sensor.huidige_uurprijs` — huidige consumentenprijs (€/kWh)
-- `sensor.uurprijs_uu_00` — 24 sensoren, één per uur
-- `binary_sensor.goedkoopste_uur_top_2` (ook 4, 6, 8, 12) — ON als het huidige
-  uur in de top-N goedkoopste uren van vandaag zit (rank ≤ N)
+- `sensor.huidige_uurprijs` - current consumer price (EUR/kWh)
+- `sensor.uurprijs_uu_00` - 24 sensors, one per hour
+- `binary_sensor.goedkoopste_10_van_de_dag` .. `..._90_van_de_dag` - ON when
+  the current hour is in the cheapest X% of the day (rank vs the day
+  interval count; identical semantics for hourly and future quarter-hour
+  tariffs)
 
-### Automation-voorbeeld
+### Automation example
 
 ```yaml
 automation:
-  - alias: "EV laden in de 2 goedkoopste uren"
+  - alias: "EV charging in the cheapest 10% of hours"
     trigger:
       - platform: state
-        entity_id: binary_sensor.goedkoopste_uur_top_2
+        entity_id: binary_sensor.goedkoopste_10_van_de_dag
         to: "on"
     action:
       - service: switch.turn_on
@@ -73,25 +83,56 @@ automation:
           entity_id: switch.skoda_enyaq_opladen
 ```
 
+## Blueprints
+
+This component ships ready-to-use [Home Assistant blueprints](https://www.home-assistant.io/docs/automation/using_blueprints/)
+so you don't have to write automations by hand.
+
+### Run device during cheapest hours
+
+Turns a device on while the current hour is among the cheapest of the day,
+and off otherwise. Only two inputs: your price-category sensor and the
+switch to control.
+
+Import it in Home Assistant:
+
+> **Settings → Automations & Scenes → ⋮ (top right) → Import blueprint**
+
+and paste this URL:
+
+```
+https://raw.githubusercontent.com/MI-Services/dynamic-energy-pricing/refs/heads/main/home-assistant/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
+```
+
+Or install manually by placing the file in:
+
+```
+<config>/blueprints/automation/energy_price_calculator/
+```
+
+After importing, create an automation from the blueprint
+(*Create automation → Blueprints → Run Device During Cheapest Hours*),
+select your `energy_price_calculator` category sensor and the appliance switch — done.
+
 ## Attributes
 
-- `market_price` — marktprijs (€/kWh)
-- `consumer_price` — jouw consumentenprijs (server-side berekend)
-- `rank` — rank van dit uur binnen vandaag (1 = goedkoopste, 24 = duurste)
-- `starts_at` — start van het uur (UTC, ISO 8601)
+- `market_price` - market price (EUR/kWh)
+- `consumer_price` - your consumer price (calculated server-side)
+- `rank` - rank of this hour within today (1 = cheapest, 24 = most expensive)
+- `starts_at` - hour start (UTC, ISO 8601)
 
-Geen `tax_breakdown` en geen afgeleide goedkoop/duur-flags: prijsopbouw en
-classificatie zijn server-side (ADR-0006); dit component toont alleen.
+No `tax_breakdown` and no derived cheap/expensive flags: price composition
+and classification are server-side (ADR-0006); this component only displays.
 
-## Wat dit component NIET meer doet (opzettelijk)
+## What this component deliberately does not do
 
-- Geen belasting-/tariefberekening (die staat op de server, issue #3)
-- Geen percentile-/rank-berekening (server levert `rank`, issue #4)
-- Geen eigen Frank Energie/ENTSO-E-clients (de server haalt prijzen op met
-  failover, issue #6)
-- Geen "goedkoopste uren"-sensor (afleidbaar uit de binary sensors)
+- No tax/tariff calculation (lives on the server)
+- No percentile/rank calculation (the server provides `rank`)
+- No own Frank Energie/ENTSO-e clients (the server fetches prices with
+  failover)
+- No "cheapest hours" sensor (derivable from the binary sensors)
 
-## Live check buiten HA om
+## Live check outside HA
 
     python scripts/check_api_live.py http://localhost:8000 demo-key-1
 
