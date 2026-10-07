@@ -6,7 +6,7 @@ blueprint:
     energy_price_calculator custom component.
   domain: automation
   author: Maarten Meijer (@MaartenMJR)
-  source: https://github.com/MaartenMJR/dynamic-energy-pricing
+  source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
   input:
     category_sensor:
       name: Price category sensor
