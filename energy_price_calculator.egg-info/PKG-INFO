@@ -1,0 +1,101 @@
+Metadata-Version: 2.4
+Name: energy-price-calculator
+Version: 2.0.0
+Summary: Home Assistant custom component (thin client) for the Dynamic Energy Pricing server
+Author-email: Maarten Meijer <maarten@mjr.services>
+License: MIT
+Project-URL: Homepage, https://github.com/MI-Services/dynamic-energy-pricing
+Project-URL: Documentation, https://github.com/MI-Services/dynamic-energy-pricing#readme
+Project-URL: Repository, https://github.com/MI-Services/dynamic-energy-pricing.git
+Project-URL: Issues, https://github.com/MI-Services/dynamic-energy-pricing/issues
+Keywords: homeassistant,energy,pricing,dynamic,thin-client
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Home Automation
+Classifier: Framework :: Pytest
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp>=3.10.0
+Requires-Dist: homeassistant>=2024.12.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"
+Requires-Dist: pytest-homeassistant-custom-component>=0.13.0; extra == "dev"
+Requires-Dist: pytest-freezer>=0.4.6; extra == "dev"
+
+# Home Assistant Dynamic Energy Price Calculator
+
+Een dunne display-client (thin client) voor het Dynamic Energy Pricing-platform:
+**alle prijsberekening gebeurt op de server** (ADR-0005). Dit component haalt
+consumentenprijzen en ranks op bij de server-API (ADR-0006) en rekent zelf niets.
+
+## Functionaliteit
+
+- Huidige uurprijs (consumentenprijs van je leverancier, inclusief belastingen)
+- 24 uurprijs-sensoren (één per lokaal uur)
+- Binary sensors "top-N goedkoopste uur" (top 2, 4, 6, 8, 12)
+- Leverancier wordt server-side bepaald via je API-key (geen lokale tariefconfiguratie)
+
+## Installatie
+
+1. Kopieer `custom_components/energy_price_calculator/` naar je Home Assistant config
+2. Herstart Home Assistant
+3. Instellingen -> Apparaten & services -> Integratie toevoegen -> **Dynamic Energy Price Calculator**
+4. Vul in:
+   - **Server URL**: bijv. `https://api.mijservices.nl`
+   - **API-key**: je persoonlijke key (tegenwoordig: via MI Services)
+5. De integratie valideert de key direct tegen `/api/v1/me`
+
+## Sensors
+
+- `sensor.huidige_uurprijs` — huidige consumentenprijs (€/kWh)
+- `sensor.uurprijs_uu_00` — 24 sensoren, één per uur
+- `binary_sensor.goedkoopste_uur_top_2` (ook 4, 6, 8, 12) — ON als het huidige
+  uur in de top-N goedkoopste uren van vandaag zit (rank ≤ N)
+
+### Automation-voorbeeld
+
+```yaml
+automation:
+  - alias: "EV laden in de 2 goedkoopste uren"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.goedkoopste_uur_top_2
+        to: "on"
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.skoda_enyaq_opladen
+```
+
+## Attributes
+
+- `market_price` — marktprijs (€/kWh)
+- `consumer_price` — jouw consumentenprijs (server-side berekend)
+- `rank` — rank van dit uur binnen vandaag (1 = goedkoopste, 24 = duurste)
+- `starts_at` — start van het uur (UTC, ISO 8601)
+
+Geen `tax_breakdown` en geen afgeleide goedkoop/duur-flags: prijsopbouw en
+classificatie zijn server-side (ADR-0006); dit component toont alleen.
+
+## Wat dit component NIET meer doet (opzettelijk)
+
+- Geen belasting-/tariefberekening (die staat op de server, issue #3)
+- Geen percentile-/rank-berekening (server levert `rank`, issue #4)
+- Geen eigen Frank Energie/ENTSO-E-clients (de server haalt prijzen op met
+  failover, issue #6)
+- Geen "goedkoopste uren"-sensor (afleidbaar uit de binary sensors)
+
+## Live check buiten HA om
+
+    python scripts/check_api_live.py http://localhost:8000 demo-key-1
+
+## Development
+
+    pip install -e ".[dev]"
+    pytest

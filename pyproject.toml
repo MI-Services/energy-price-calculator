@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "energy-price-calculator"
+version = "2.0.0"
+description = "Home Assistant custom component (thin client) for the Dynamic Energy Pricing server"
+readme = "README.md"
+license = {text = "MIT"}
+# The HA test harness requires Python >= 3.12 (same as recent HA versions);
+# the component itself runs inside HA, which pins the actual runtime.
+requires-python = ">=3.12"
+authors = [
+    {name = "Maarten Meijer", email = "maarten@mjr.services"}
+]
+keywords = ["homeassistant", "energy", "pricing", "dynamic", "thin-client"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Framework :: Pytest",
+]
+
+dependencies = [
+    "aiohttp>=3.10.0",
+    "homeassistant>=2024.12.0",
+]
+
+[project.optional-dependencies]
+# pytest-homeassistant-custom-component is HA core's own test harness,
+# packaged for custom components: real hass instance, aioclient_mock,
+# freezer and MockConfigEntry fixtures. Its version tracks HA releases -
+# bump it alongside the homeassistant dependency when upgrading.
+dev = [
+    "pytest>=8.0",
+    "pytest-homeassistant-custom-component>=0.13.0",
+    "pytest-freezer>=0.4.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/MI-Services/dynamic-energy-pricing"
+Documentation = "https://github.com/MI-Services/dynamic-energy-pricing#readme"
+Repository = "https://github.com/MI-Services/dynamic-energy-pricing.git"
+Issues = "https://github.com/MI-Services/dynamic-energy-pricing/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["custom_components/energy_price_calculator/tests"]
+# The HA harness exposes async fixtures (hass, aioclient_mock, ...); without
+# auto mode pytest-asyncio treats tests as sync and every async fixture fails
+# with "no plugin or hook that handled it". HA core itself uses auto mode.
+asyncio_mode = "auto"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["custom_components*"]

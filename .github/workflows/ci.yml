@@ -1,0 +1,55 @@
+# CI: unit tests for the Home Assistant custom component on every push and PR.
+#
+# Matrix policy: the required leg matches the production runtime exactly
+# (Home Assistant requires Python >= 3.12) - the component runs inside HA,
+# which pins the actual runtime. The 3.13 leg is a canary: allowed to fail,
+# so deprecation warnings and removals surface early, BEFORE the HA baseline
+# moves up. When HA bumps its baseline, move the required leg with it.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ha-component-tests:
+    name: HA component tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12']
+        include:
+          - python-version: '3.13'
+            canary: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package with dev dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest -v --junitxml=test-results.xml
+        continue-on-error: ${{ matrix.canary == true }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-py${{ matrix.python-version }}
+          path: test-results.xml
+          retention-days: 7

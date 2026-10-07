@@ -1,0 +1,13 @@
+{
+  "domain": "energy_price_calculator",
+  "name": "Dynamic Energy Price Calculator",
+  "documentation": "https://github.com/MI-Services/dynamic-energy-pricing",
+  "issue_tracker": "https://github.com/MI-Services/dynamic-energy-pricing/issues",
+  "dependencies": [],
+  "codeowners": ["@MaartenMJR"],
+  "requirements": ["aiohttp>=3.10.0"],
+  "iot_class": "cloud_polling",
+  "version": "2.0.0",
+  "config_flow": true,
+  "single_config_entry": true
+}
