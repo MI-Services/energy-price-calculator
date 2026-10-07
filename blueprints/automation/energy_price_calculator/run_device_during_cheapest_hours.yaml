@@ -2,23 +2,23 @@ blueprint:
   name: Run Device During Cheapest Hours
   description: >-
     Turn a device on when the current hour belongs to the cheapest hours of
-    the day, and off otherwise. Uses the category sensor of the
-    energy_price_calculator custom component.
+    the day, and off otherwise. Uses a binary sensor from the
+    energy_price_calculator integration (e.g. goedkoopste_10_van_de_dag).
   domain: automation
   author: Maarten Meijer (@MaartenMJR)
   source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
   input:
-    category_sensor:
-      name: Price category sensor
+    cheap_hour_sensor:
+      name: Cheap hour sensor
       description: >-
-        The category sensor of energy_price_calculator that shows the current
-        hour category (e.g. "10% cheapest", "duurste").
+        The binary sensor from energy_price_calculator that turns ON during
+        the cheapest hours (e.g. binary_sensor.goedkoopste_10_van_de_dag).
       selector:
         entity:
-          domain: sensor
-    device_on:
-      name: Device to switch
-      description: The switch that runs the appliance.
+          domain: binary_sensor
+    device_switch:
+      name: Device switch
+      description: The switch that controls the appliance.
       selector:
         target:
           entity:
@@ -28,14 +28,14 @@ mode: single
 max_exceeded: silent
 
 variables:
-  category_sensor_var: !input category_sensor
+  cheap_hour_sensor_var: !input cheap_hour_sensor
   is_cheap: >-
-    {{ states(category_sensor_var) | regex_search('cheapest|goedkoopste', ignorecase=true) is not none }}
+    {{ states(cheap_hour_sensor_var) == 'on' }}
 
 triggers:
   - trigger: state
-    entity_id: !input category_sensor
-    id: category_changed
+    entity_id: !input cheap_hour_sensor
+    id: sensor_changed
   - trigger: homeassistant
     event: start
     id: ha_start
@@ -49,7 +49,7 @@ actions:
         value_template: "{{ is_cheap }}"
     then:
       - action: homeassistant.turn_on
-        target: !input device_on
+        target: !input device_switch
     else:
       - action: homeassistant.turn_off
-        target: !input device_on
+        target: !input device_switch
