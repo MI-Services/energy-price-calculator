@@ -1,0 +1,55 @@
+blueprint:
+  name: Run Device During Cheapest Hours
+  description: >-
+    Turn a device on when the current hour belongs to the cheapest hours of
+    the day, and off otherwise. Uses the category sensor of the
+    energy_price_calculator custom component.
+  domain: automation
+  author: Maarten Meijer (@MaartenMJR)
+  source: https://github.com/MaartenMJR/dynamic-energy-pricing
+  input:
+    category_sensor:
+      name: Price category sensor
+      description: >-
+        The category sensor of energy_price_calculator that shows the current
+        hour category (e.g. "10% cheapest", "duurste").
+      selector:
+        entity:
+          domain: sensor
+    device_on:
+      name: Device to switch
+      description: The switch that runs the appliance.
+      selector:
+        target:
+          entity:
+            domain: switch
+
+mode: single
+max_exceeded: silent
+
+variables:
+  category_sensor_var: !input category_sensor
+  is_cheap: >-
+    {{ states(category_sensor_var) | regex_search('cheapest|goedkoopste', ignorecase=true) is not none }}
+
+triggers:
+  - trigger: state
+    entity_id: !input category_sensor
+    id: category_changed
+  - trigger: homeassistant
+    event: start
+    id: ha_start
+  - trigger: time_pattern
+    minutes: /15
+    id: periodic_check
+
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ is_cheap }}"
+    then:
+      - action: homeassistant.turn_on
+        target: !input device_on
+    else:
+      - action: homeassistant.turn_off
+        target: !input device_on

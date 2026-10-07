@@ -5,6 +5,8 @@ calculation happens on the server** (ADR-0005). This component fetches
 consumer prices and ranks from the server API (ADR-0006) and computes
 nothing itself.
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/hacs/repository)
+
 ## Functionality
 
 - Current hour price (your supplier consumer price, taxes included)
