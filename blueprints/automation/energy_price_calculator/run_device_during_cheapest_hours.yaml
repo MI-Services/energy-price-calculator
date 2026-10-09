@@ -4,6 +4,10 @@ blueprint:
     Turn a device on when the current hour belongs to the cheapest hours of
     the day, and off otherwise. Uses a binary sensor from the
     energy_price_calculator integration (e.g. goedkoopste_10_van_de_dag).
+    Optionally extra conditions can be set, e.g. only charge when the EV
+    cable is plugged in, or run the heat pump only when the average outdoor
+    temperature is below a threshold. Add the condition entities as extra
+    triggers so the automation also re-evaluates when they change.
   domain: automation
   author: Maarten Meijer (@MaartenMJR)
   source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
@@ -23,6 +27,17 @@ blueprint:
         target:
           entity:
             domain: switch
+    extra_conditions:
+      name: Extra conditions (optional)
+      description: >-
+        Extra conditions that must also be met before the device is switched
+        on. Examples: EV charging only when the charging cable is plugged in
+        (state condition on the plug sensor), or a heat pump only when the
+        average outdoor temperature is below a threshold (numeric state
+        condition). Leave empty to always switch on during the cheap hours.
+      default: []
+      selector:
+        condition:
 
 mode: single
 max_exceeded: silent
@@ -42,6 +57,7 @@ triggers:
 
 actions:
   - if:
+      - condition: !input extra_conditions
       - condition: template
         value_template: "{{ is_cheap }}"
     then:
