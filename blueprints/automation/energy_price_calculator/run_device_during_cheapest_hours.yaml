@@ -39,9 +39,6 @@ triggers:
   - trigger: homeassistant
     event: start
     id: ha_start
-  - trigger: time_pattern
-    minutes: /15
-    id: periodic_check
 
 actions:
   - if:
