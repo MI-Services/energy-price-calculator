@@ -86,6 +86,36 @@ class TestCurrentHourSensor:
         assert state.attributes["market_price"] == pytest.approx(0.05 + 20 * 0.001)
 
 
+class TestLongTermStatisticsContract:
+    """Issue 29: every price sensor must expose state_class measurement so
+    Home Assistant records long-term statistics (2-year price history).
+    Without state_class, HA refuses to record statistics for an entity.
+    """
+
+    async def test_current_hour_sensor_has_measurement_state_class(self, hass, aioclient_mock):
+        await _setup(hass, aioclient_mock, _day())
+        state = hass.states.get("sensor.huidige_uurprijs")
+        assert state is not None
+        assert state.attributes["state_class"] == "measurement"
+        assert state.attributes["device_class"] == "monetary"
+
+    async def test_every_hourly_sensor_has_measurement_state_class(self, hass, aioclient_mock):
+        await _setup(hass, aioclient_mock, _day())
+        for h in range(24):
+            state = hass.states.get("sensor.uurprijs_" + str(h).zfill(2) + "_00")
+            assert state is not None
+            assert state.attributes["state_class"] == "measurement", (
+                "hourly sensor missing state_class, no long-term statistics: " + str(h)
+            )
+            assert state.attributes["device_class"] == "monetary"
+
+    async def test_unit_of_measurement_is_recordable(self, hass, aioclient_mock):
+        """HA LTS records monetary sensors with EUR/kWh native units."""
+        await _setup(hass, aioclient_mock, _day())
+        state = hass.states.get("sensor.huidige_uurprijs")
+        assert state.attributes["unit_of_measurement"] == "EUR/kWh"
+
+
 class TestUtcToLocalMapping:
     async def test_utc_timezone_maps_identity(self, hass, aioclient_mock, freezer):
         """With UTC configured, local hour == API hour."""
@@ -152,8 +182,7 @@ class TestDailySchedule:
         assert _count_today_calls(aioclient_mock) == 1
 
     async def test_no_extra_call_on_hour_rollover(self, hass, aioclient_mock, freezer):
-        """State changes on the hour boundary (
-current-hour sensor,
+        """State changes on the hour boundary (current-hour sensor,
         percentage sensors) must be a local re-render: an hour passing
         does NOT trigger a fetch."""
         freezer.move_to(datetime(2026, 10, 3, 20, 30, 0, tzinfo=timezone.utc))

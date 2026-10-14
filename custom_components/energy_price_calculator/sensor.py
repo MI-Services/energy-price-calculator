@@ -9,6 +9,11 @@ sensors read the shared coordinator and compute their state as properties.
 The current-hour state and the percentage sensors change on the local hour
 rollover - a timestamp change, not a data change - so they re-render on the
 hour boundary without touching the API.
+
+All price sensors carry state_class MEASUREMENT so Home Assistant records
+long-term statistics for them (up to 2 years of price history). The hourly
+sensors change state once per day (new prices at 00:05), the current-hour
+sensor every local hour.
 """
 from __future__ import annotations
 
@@ -152,6 +157,7 @@ class HourlyPriceSensor(_BasePriceSensor, SensorEntity):
     """Consumer price for a specific local hour, straight from the coordinator."""
 
     _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = f"{CURRENCY_EURO}/kWh"
 
     def __init__(self, coordinator: PriceDataCoordinator, hour: int) -> None:
