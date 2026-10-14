@@ -13,6 +13,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
+from homeassistant.const import CURRENCY_EURO
+
 from custom_components.energy_price_calculator.const import (
     CONF_API_KEY,
     CONF_SERVER_URL,
@@ -110,10 +112,14 @@ class TestLongTermStatisticsContract:
             assert state.attributes["device_class"] == "monetary"
 
     async def test_unit_of_measurement_is_recordable(self, hass, aioclient_mock):
-        """HA LTS records monetary sensors with EUR/kWh native units."""
+        """HA LTS records monetary sensors; the unit is derived from the
+        CURRENCY_EURO constant (rendered as the euro symbol), not a
+        literal string - asserting against the constant keeps the test
+        correct across HA versions."""
         await _setup(hass, aioclient_mock, _day())
+        expected_unit = f"{CURRENCY_EURO}/kWh"
         state = hass.states.get("sensor.huidige_uurprijs")
-        assert state.attributes["unit_of_measurement"] == "EUR/kWh"
+        assert state.attributes["unit_of_measurement"] == expected_unit
 
 
 class TestUtcToLocalMapping:
