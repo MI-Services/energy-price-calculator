@@ -4,13 +4,14 @@ blueprint:
     Turn a device on when the current hour belongs to the cheapest hours of
     the day, and off otherwise. Uses a binary sensor from the
     energy_price_calculator integration (e.g. goedkoopste_10_van_de_dag).
-    Optionally extra conditions can be set, e.g. only charge when the EV
-    cable is plugged in, or run the heat pump only when the average outdoor
-    temperature is below a threshold. Add the condition entities as extra
-    triggers so the automation also re-evaluates when they change.
+    Optionally, the device only runs while a presence sensor indicates it is
+    home (e.g. the EV), and extra conditions can be set, e.g. only charge
+    when the EV cable is plugged in.
   domain: automation
   author: Maarten Meijer (@MaartenMJR)
   source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
+  homeassistant:
+    min_version: "2024.10.0"
   input:
     cheap_hour_sensor:
       name: Cheap hour sensor
@@ -27,6 +28,21 @@ blueprint:
         target:
           entity:
             domain: switch
+    presence_sensor:
+      name: Presence sensor (optional)
+      description: >-
+        Entity that indicates the device (e.g. the EV) is home: a
+        device_tracker or person (state 'home') or a binary_sensor (state
+        'on'). The device only runs during cheap hours while this sensor is
+        'home'/'on'; arriving home or leaving immediately re-evaluates the
+        switch. Leave empty to always allow running.
+      default: ""
+      selector:
+        entity:
+          domain:
+            - device_tracker
+            - person
+            - binary_sensor
     extra_conditions:
       name: Extra conditions (optional)
       description: >-
@@ -42,10 +58,16 @@ blueprint:
 mode: single
 max_exceeded: silent
 
+trigger_variables:
+  presence_sensor_tv: !input presence_sensor
+
 variables:
   cheap_hour_sensor_var: !input cheap_hour_sensor
+  presence_sensor_var: !input presence_sensor
   is_cheap: >-
     {{ states(cheap_hour_sensor_var) == 'on' }}
+  car_home: >-
+    {{ presence_sensor_var == '' or is_state(presence_sensor_var, ['home', 'on']) }}
 
 triggers:
   - trigger: state
@@ -54,12 +76,20 @@ triggers:
   - trigger: homeassistant
     event: start
     id: ha_start
+  - trigger: template
+    value_template: >-
+      {{ presence_sensor_tv != '' and is_state(presence_sensor_tv, ['home', 'on']) }}
+    id: presence_arrived
+  - trigger: template
+    value_template: >-
+      {{ presence_sensor_tv != '' and not is_state(presence_sensor_tv, ['home', 'on']) }}
+    id: presence_left
 
 actions:
   - if:
       - condition: !input extra_conditions
       - condition: template
-        value_template: "{{ is_cheap }}"
+        value_template: "{{ is_cheap and car_home }}"
     then:
       - action: homeassistant.turn_on
         target: !input device_switch
