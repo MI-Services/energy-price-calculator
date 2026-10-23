@@ -6,7 +6,11 @@ blueprint:
     energy_price_calculator integration (e.g. goedkoopste_10_van_de_dag).
     Optionally, the device only runs while a presence sensor indicates it is
     home (e.g. the EV), and extra conditions can be set, e.g. only charge
-    when the EV cable is plugged in.
+    when the EV cable is plugged in. Optionally provide the device switch
+    state sensor so the automation re-evaluates when the switch is turned
+    on externally (e.g. a smart-charging provider resuming an EV after an
+    imbalance-market pause); an externally switched-off device is left
+    alone.
   domain: automation
   author: Maarten Meijer (@MaartenMJR)
   source_url: https://github.com/MI-Services/energy-price-calculator/blob/main/blueprints/automation/energy_price_calculator/run_device_during_cheapest_hours.yaml
@@ -54,12 +58,28 @@ blueprint:
       default: []
       selector:
         condition:
+    device_switch_sensor:
+      name: Device switch state sensor (optional)
+      description: >-
+        The switch entity to monitor for external turn-on events. When this
+        switch is switched on from outside this automation (e.g. a
+        smart-charging provider resuming charging after an imbalance-market
+        pause), the automation immediately re-evaluates and switches the
+        device off again if the current hour is not (or no longer) cheap.
+        An externally switched-off device is left alone, so external pauses
+        are respected. Leave empty to disable.
+      default: ""
+      selector:
+        entity:
+          domain:
+            - switch
 
 mode: single
 max_exceeded: silent
 
 trigger_variables:
   presence_sensor_tv: !input presence_sensor
+  device_switch_tv: !input device_switch_sensor
 
 variables:
   cheap_hour_sensor_var: !input cheap_hour_sensor
@@ -84,6 +104,10 @@ triggers:
     value_template: >-
       {{ presence_sensor_tv != '' and not is_state(presence_sensor_tv, ['home', 'on']) }}
     id: presence_left
+  - trigger: template
+    value_template: >-
+      {{ device_switch_tv != '' and is_state(device_switch_tv, 'on') }}
+    id: switch_turned_on
 
 actions:
   - if:
