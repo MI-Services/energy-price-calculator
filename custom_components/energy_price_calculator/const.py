@@ -11,6 +11,20 @@ CONF_API_KEY = "api_key"
 DEFAULT_SCAN_INTERVAL = timedelta(hours=1)
 DEFAULT_UPDATE_AT = "00:00"
 
+# Two fetch moments per day: today's prices refresh just after midnight;
+# tomorrow's day-ahead prices - published by the market around 14:00 local -
+# refresh in the afternoon so evening planning (EV charging, the cheapest
+# hours of the coming night) has the next day available the same day
+# instead of only after midnight.
+TODAY_FETCH_HOUR = 0
+TODAY_FETCH_MINUTE = 5
+TOMORROW_FETCH_HOUR = 14
+TOMORROW_FETCH_MINUTE = 30
+
+# hass.data keys for the per-entry coordinators
+COORD_TODAY = "today"
+COORD_TOMORROW = "tomorrow"
+
 # Percentage thresholds for the binary sensors: ON when the current
 # interval (hour now, quarter-hour when a provider uses quarter tariffs)
 # is among the cheapest X% of the day, i.e. rank / interval_count * 100
@@ -24,6 +38,8 @@ ATTR_CONSUMER_PRICE = "consumer_price"
 ATTR_RANK = "rank"
 ATTR_PROVIDER = "provider"
 ATTR_STARTS_AT = "starts_at"
+ATTR_HOURS = "hours"
+ATTR_PCT = "pct"
 
 # Events
 EVENT_PRICE_CATEGORY = "energy_price_category_change"

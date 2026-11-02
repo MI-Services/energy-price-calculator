@@ -5,7 +5,7 @@ among the cheapest X% of the day. Pure comparison, no calculation
 (ADR-0005): the rank is computed server-side. Registered via the
 binary_sensor platform so the entities get the binary_sensor.* prefix.
 
-State comes from the shared coordinator (one API call per day, see
+State comes from the shared today coordinator (see
 helpers/coordinator.py); the hour rollover re-renders without a fetch.
 """
 from __future__ import annotations
@@ -15,15 +15,17 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import (
     ATTR_RANK,
+    COORD_TODAY,
     DOMAIN,
     PERCENT_THRESHOLDS,
 )
 from .helpers.coordinator import PriceDataCoordinator
+from .helpers.percentage_window import is_in_cheapest_window
 from .sensor import _BasePriceSensor, _local_hour
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
-    coordinator: PriceDataCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: PriceDataCoordinator = hass.data[DOMAIN][entry.entry_id][COORD_TODAY]
     async_add_entities([TopCheapestSensor(coordinator, pct) for pct in PERCENT_THRESHOLDS])
 
 
@@ -57,7 +59,7 @@ class TopCheapestSensor(_BasePriceSensor, BinarySensorEntity):
         # Rank is 1-based over the day's intervals; _hours holds the
         # full day (the client enforces the interval count).
         intervals = len(self._hours) if self._hours else 0
-        return intervals > 0 and (data.rank * 100) <= self._pct * intervals
+        return is_in_cheapest_window(data.rank, self._pct, intervals)
 
     @property
     def extra_state_attributes(self):

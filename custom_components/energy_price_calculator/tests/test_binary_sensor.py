@@ -12,6 +12,7 @@ from custom_components.energy_price_calculator.const import (
 
 SERVER = "http://localhost:8000"
 TODAY_URL = SERVER + "/api/v1/prices/today"
+TOMORROW_URL = SERVER + "/api/v1/prices/tomorrow"
 
 
 def _day(rank):
@@ -30,6 +31,7 @@ def _day(rank):
 
 async def _setup(hass, aioclient_mock, day_body):
     aioclient_mock.get(TODAY_URL, json=day_body)
+    aioclient_mock.get(TOMORROW_URL, status=404, json={"detail": "not published yet"})
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_SERVER_URL: SERVER, CONF_API_KEY: "test-key"},
@@ -42,8 +44,9 @@ async def _setup(hass, aioclient_mock, day_body):
 
 class TestBinarySensors:
     async def test_entities_have_binary_sensor_prefix(self, hass, aioclient_mock, freezer):
-        """Regression: binary sensors registered via the sensor platform would
-        get a sensor.* prefix and break binary_sensor.* automations."""
+        """Binary sensors must have the binary_sensor.* prefix: registering
+        them via the sensor platform would give them a sensor.* prefix and
+        break binary_sensor.* automations."""
         freezer.move_to(datetime(2026, 10, 3, 20, 30, 0, tzinfo=timezone.utc))
         await _setup(hass, aioclient_mock, _day(lambda h: h + 1))
         for pct in PERCENT_THRESHOLDS:

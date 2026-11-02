@@ -23,6 +23,7 @@ from custom_components.energy_price_calculator.const import (
 
 SERVER = "http://localhost:8000"
 TODAY_URL = SERVER + "/api/v1/prices/today"
+TOMORROW_URL = SERVER + "/api/v1/prices/tomorrow"
 
 
 def _day(day="2026-10-03", price=None, consumer=None, rank=None):
@@ -41,6 +42,7 @@ def _day(day="2026-10-03", price=None, consumer=None, rank=None):
 
 async def _setup(hass, aioclient_mock, day_body):
     aioclient_mock.get(TODAY_URL, json=day_body)
+    aioclient_mock.get(TOMORROW_URL, status=404, json={"detail": "not published yet"})
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_SERVER_URL: SERVER, CONF_API_KEY: "test-key"},
@@ -89,8 +91,8 @@ class TestCurrentHourSensor:
 
 
 class TestLongTermStatisticsContract:
-    """Issue 29: every price sensor must expose state_class measurement so
-    Home Assistant records long-term statistics (2-year price history).
+    """Every price sensor must expose state_class measurement so Home
+    Assistant records long-term statistics (2-year price history).
     Without state_class, HA refuses to record statistics for an entity.
     """
 
@@ -177,12 +179,11 @@ def amsterdam_tz():
 
 
 class TestDailySchedule:
-    """The one-call-per-day contract (werksessie 2026-10-04)."""
+    """The one-call-per-day contract."""
 
     async def test_setup_makes_single_api_call(self, hass, aioclient_mock, freezer):
-        """Regression: the old per-sensor polling design fired 30+ identical
-        /prices/today calls per tick; the shared coordinator must make
-        exactly ONE call for the whole setup."""
+        """The shared coordinator makes exactly ONE /prices/today call for
+        the whole setup; every entity reads from it."""
         freezer.move_to(datetime(2026, 10, 3, 20, 30, 0, tzinfo=timezone.utc))
         await _setup(hass, aioclient_mock, _day())
         assert _count_today_calls(aioclient_mock) == 1

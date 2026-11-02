@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energy-price-calculator"
-version = "2.0.0"
+version = "2.1.0"
 description = "Home Assistant custom component (thin client) for the Dynamic Energy Pricing server"
 readme = "README.md"
 license = {text = "MIT"}
@@ -26,7 +26,6 @@ classifiers = [
     "Topic :: Home Automation",
     "Framework :: Pytest",
 ]
-
 dependencies = [
     "aiohttp>=3.10.0",
     "homeassistant>=2024.12.0",
@@ -35,8 +34,8 @@ dependencies = [
 [project.optional-dependencies]
 # pytest-homeassistant-custom-component is HA core's own test harness,
 # packaged for custom components: real hass instance, aioclient_mock,
-# freezer and MockConfigEntry fixtures. Its version tracks HA releases -
-# bump it alongside the homeassistant dependency when upgrading.
+# freezer and MockConfigEntry fixtures. Its version tracks HA releases - the
+# canary leg relies on it staying close to the required leg.
 dev = [
     "pytest>=8.0",
     "pytest-homeassistant-custom-component>=0.13.0",
