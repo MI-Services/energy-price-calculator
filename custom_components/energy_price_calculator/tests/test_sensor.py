@@ -91,8 +91,8 @@ class TestCurrentHourSensor:
 
 
 class TestLongTermStatisticsContract:
-    """Issue 29: every price sensor must expose state_class measurement so
-    Home Assistant records long-term statistics (2-year price history).
+    """Every price sensor must expose state_class measurement so Home
+    Assistant records long-term statistics (2-year price history).
     Without state_class, HA refuses to record statistics for an entity.
     """
 
@@ -179,12 +179,11 @@ def amsterdam_tz():
 
 
 class TestDailySchedule:
-    """The one-call-per-day contract (werksessie 2026-10-04)."""
+    """The one-call-per-day contract."""
 
     async def test_setup_makes_single_api_call(self, hass, aioclient_mock, freezer):
-        """Regression: the old per-sensor polling design fired 30+ identical
-        /prices/today calls per tick; the shared coordinator must make
-        exactly ONE call for the whole setup."""
+        """The shared coordinator makes exactly ONE /prices/today call for
+        the whole setup; every entity reads from it."""
         freezer.move_to(datetime(2026, 10, 3, 20, 30, 0, tzinfo=timezone.utc))
         await _setup(hass, aioclient_mock, _day())
         assert _count_today_calls(aioclient_mock) == 1

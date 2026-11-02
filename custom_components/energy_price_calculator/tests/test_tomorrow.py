@@ -1,11 +1,11 @@
-"""Harness tests for the day-ahead (tomorrow) entities - issue #64.
+"""Harness tests for the day-ahead (tomorrow) entities.
 
 The day-ahead market publishes around 14:00 local; the component fetches
 tomorrow's prices at 14:30 (retry every 30 minutes while they are not
 published) so evening planning has the coming night available the same
-day. These tests pin that contract against the real HA machinery:
-entity registration, the 14:30 schedule, the unpublished retry, the
-day-boundary reset and the floor semantics of the cheapest-hours window.
+day. These tests pin that contract against the real HA machinery: entity
+registration, the 14:30 schedule, the unpublished retry, the day-boundary
+reset and the floor semantics of the cheapest-hours window.
 """
 from datetime import datetime, timezone
 
@@ -92,7 +92,6 @@ def amsterdam_tz():
     dt_util.set_default_time_zone(ZoneInfo("Europe/Amsterdam"))
     yield
     dt_util.set_default_time_zone(original)
-
 
 
 class TestTomorrowEntities:
