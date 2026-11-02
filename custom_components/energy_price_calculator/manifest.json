@@ -7,7 +7,7 @@
   "codeowners": ["@MaartenMJR"],
   "requirements": ["aiohttp>=3.10.0"],
   "iot_class": "cloud_polling",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "config_flow": true,
   "single_config_entry": true
 }

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energy-price-calculator"
-version = "2.0.0"
+version = "2.1.0"
 description = "Home Assistant custom component (thin client) for the Dynamic Energy Pricing server"
 readme = "README.md"
 license = {text = "MIT"}

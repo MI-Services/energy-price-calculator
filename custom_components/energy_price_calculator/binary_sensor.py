@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import (
     ATTR_RANK,
+    COORD_TODAY,
     DOMAIN,
     PERCENT_THRESHOLDS,
 )
@@ -23,7 +24,7 @@ from .sensor import _BasePriceSensor, _local_hour
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
-    coordinator: PriceDataCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: PriceDataCoordinator = hass.data[DOMAIN][entry.entry_id][COORD_TODAY]
     async_add_entities([TopCheapestSensor(coordinator, pct) for pct in PERCENT_THRESHOLDS])
 
 

@@ -20,9 +20,14 @@ computes nothing itself.
   its percentage of the day)
 - Your supplier is determined server-side via your API key (no local tariff
   configuration)
-- One API request per day: a shared coordinator fetches the whole day once
-  (at 00:05 local time, retrying every 30 minutes on failure). Hour-to-hour
-  state changes are computed locally without further requests
+- 24 hourly price sensors for tomorrow (day-ahead), plus a "cheapest hours
+  tomorrow" window sensor per percentage - so evening planning (EV
+  charging, the coming night) works the same day instead of after midnight
+- Two API requests per day: today's prices at 00:05 local, tomorrow's
+  day-ahead prices at 14:30 local (the day-ahead market publishes around
+  14:00; while the prices are not out yet, the component retries every 30
+  minutes). Hour-to-hour state changes are computed locally without
+  further requests
 
 ## Installation
 
@@ -60,6 +65,14 @@ HACS default list, so it is added as a custom repository.
   the current hour is in the cheapest X% of the day (rank vs the day
   interval count; identical semantics for hourly and future quarter-hour
   tariffs)
+- `sensor.uurprijs_morgen_uu_00` - 24 sensors, tomorrow's day-ahead price
+  per local hour (state `unknown` with an `error` attribute until the
+  market has published)
+- `sensor.goedkoopste_uren_morgen_10` .. `..._90` - which local hours of
+  tomorrow fall in the cheapest X% window (state: comma-separated hours,
+  e.g. `01, 02, 07`; attributes `hours`, `starts_at`, `pct`). Same floor
+  semantics as the percentage binary sensors; ready for evening planning
+  of the coming night
 
 ### Automation example
 
@@ -113,6 +126,8 @@ select your `energy_price_calculator` category sensor and the appliance switch â
 - `consumer_price` - your consumer price (calculated server-side)
 - `rank` - rank of this hour within today (1 = cheapest, 24 = most expensive)
 - `starts_at` - hour start (UTC, ISO 8601)
+- `hours` / `pct` - (cheapest-hours-tomorrow sensors) the window's local
+  hours and the percentage threshold it represents
 
 No `tax_breakdown` and no derived cheap/expensive flags: price composition
 and classification are server-side; this component only displays.
@@ -124,10 +139,13 @@ and classification are server-side; this component only displays.
 - **No price-source clients:** the server fetches market prices (with
   failover between sources), so this component never talks to Frank Energie,
   ENTSO-e or similar services directly.
-- **Low request volume:** one request per day per installation; the
+- **Low request volume:** two requests per day per installation (today at
+  00:05, day-ahead at 14:30 with a 30-minute retry until published); the
   server rate is therefore predictable.
-- **No "cheapest hours" sensor:** it can be derived from the percentage binary
-  sensors.
+- **"Cheapest hours" only for tomorrow:** for today the window follows
+  from the percentage binary sensors; tomorrow's window gets an explicit
+  sensor because the current-hour sensors cannot describe the coming
+  night.
 
 ## Live check outside HA
 

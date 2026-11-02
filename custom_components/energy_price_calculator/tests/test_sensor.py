@@ -23,6 +23,7 @@ from custom_components.energy_price_calculator.const import (
 
 SERVER = "http://localhost:8000"
 TODAY_URL = SERVER + "/api/v1/prices/today"
+TOMORROW_URL = SERVER + "/api/v1/prices/tomorrow"
 
 
 def _day(day="2026-10-03", price=None, consumer=None, rank=None):
@@ -41,6 +42,7 @@ def _day(day="2026-10-03", price=None, consumer=None, rank=None):
 
 async def _setup(hass, aioclient_mock, day_body):
     aioclient_mock.get(TODAY_URL, json=day_body)
+    aioclient_mock.get(TOMORROW_URL, status=404, json={"detail": "not published yet"})
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_SERVER_URL: SERVER, CONF_API_KEY: "test-key"},
