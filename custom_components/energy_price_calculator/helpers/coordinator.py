@@ -93,6 +93,10 @@ class TomorrowPriceCoordinator(DataUpdateCoordinator):
 
     @callback
     def async_reset(self) -> None:
-        """Drop the day-ahead set at the day boundary (new day != new data)."""
-        self.data = None
-        self.async_update_listeners()
+        """Drop the day-ahead set at the day boundary (new day != new data).
+        
+        Use async_set_updated_data to ensure listeners are notified and
+        the retry timer is cancelled, leaving entities in a clean unknown
+        state instead of retaining stale error information.
+        """
+        self.async_set_updated_data(None)
