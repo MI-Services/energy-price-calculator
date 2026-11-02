@@ -51,6 +51,7 @@ from .const import (
 )
 from .helpers.api_client import HourData
 from .helpers.coordinator import PriceDataCoordinator
+from .helpers.percentage_window import get_cheapest_window
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -288,14 +289,7 @@ class CheapestHoursTomorrowSensor(_BasePriceSensor, SensorEntity):
 
     def _window(self) -> List[HourData]:
         """Tomorrow hours within the cheapest X%, ordered by start time."""
-        hours = self._hours
-        if not hours:
-            return []
-        intervals = len(hours)
-        return sorted(
-            (h for h in hours if h.rank * 100 <= self._pct * intervals),
-            key=lambda h: h.starts_at,
-        )
+        return get_cheapest_window(self._hours, self._pct)
 
     @property
     def native_value(self):

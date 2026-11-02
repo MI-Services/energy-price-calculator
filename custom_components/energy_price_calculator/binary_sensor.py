@@ -20,6 +20,7 @@ from .const import (
     PERCENT_THRESHOLDS,
 )
 from .helpers.coordinator import PriceDataCoordinator
+from .helpers.percentage_window import is_in_cheapest_window
 from .sensor import _BasePriceSensor, _local_hour
 
 
@@ -58,7 +59,7 @@ class TopCheapestSensor(_BasePriceSensor, BinarySensorEntity):
         # Rank is 1-based over the day's intervals; _hours holds the
         # full day (the client enforces the interval count).
         intervals = len(self._hours) if self._hours else 0
-        return intervals > 0 and (data.rank * 100) <= self._pct * intervals
+        return is_in_cheapest_window(data.rank, self._pct, intervals)
 
     @property
     def extra_state_attributes(self):
