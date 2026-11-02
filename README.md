@@ -18,11 +18,11 @@ computes nothing itself.
 - Percentage binary sensors: ON while the current hour is among the cheapest
   10% .. 90% of the day (floor semantics: a sensor is never ON for more than
   its percentage of the day)
-- Your supplier is determined server-side via your API key (no local tariff
-  configuration)
 - 24 hourly price sensors for tomorrow (day-ahead), plus a "cheapest hours
   tomorrow" window sensor per percentage - so evening planning (EV
   charging, the coming night) works the same day instead of after midnight
+- Your supplier is determined server-side via your API key (no local tariff
+  configuration)
 - Two API requests per day: today's prices at 00:05 local, tomorrow's
   day-ahead prices at 14:30 local (the day-ahead market publishes around
   14:00; while the prices are not out yet, the component retries every 30
