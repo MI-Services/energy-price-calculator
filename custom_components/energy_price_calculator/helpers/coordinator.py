@@ -1,9 +1,8 @@
 """Shared data coordinators: one API call per dataset per day.
 
 /api/v1/prices/today returns the ENTIRE day in a single response, so a
-healthy installation needs exactly one call per day for today's prices.
-The previous design fetched per sensor, per hour: 30+ identical calls per
-tick, 24 ticks per day - roughly 750 calls/day for data that changes once.
+healthy installation needs exactly one call per day per dataset. Every
+entity reads the shared coordinators; nothing fetches on its own.
 
 New state != new data: the current-hour switch and the percentage sensors
 re-render on the local hour rollover (a timestamp change, no fetch). Only
@@ -12,10 +11,9 @@ the day boundaries need a refresh, scheduled by async_setup_entry:
 - tomorrow at 14:30 local (the day-ahead market publishes around 14:00;
   until then the fetch answers 404 and the retry timer keeps trying).
 
-Two coordinators, one per dataset (issue #64): today's behaviour stays
-byte-for-byte identical for existing consumers, while tomorrow's prices
-become available the same afternoon for evening planning (EV charging,
-the cheapest-hours window of the coming night).
+Two coordinators, one per dataset: today's behaviour stays identical for
+existing consumers, while tomorrow's prices become available the same
+afternoon for evening planning.
 
 No fixed update_interval: refreshes are triggered by the daily schedules
 plus a retry timer while the last refresh failed.

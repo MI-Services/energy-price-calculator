@@ -11,11 +11,11 @@ CONF_API_KEY = "api_key"
 DEFAULT_SCAN_INTERVAL = timedelta(hours=1)
 DEFAULT_UPDATE_AT = "00:00"
 
-# Two fetch moments per day (issue #64): today's prices refresh just after
-# midnight; tomorrow's day-ahead prices - published by the market around
-# 14:00 local - refresh in the afternoon so evening planning (EV charging,
-# cheapest-hours window for the coming night) has the next day available
-# the same day instead of only after midnight.
+# Two fetch moments per day: today's prices refresh just after midnight;
+# tomorrow's day-ahead prices - published by the market around 14:00 local -
+# refresh in the afternoon so evening planning (EV charging, the cheapest
+# hours of the coming night) has the next day available the same day
+# instead of only after midnight.
 TODAY_FETCH_HOUR = 0
 TODAY_FETCH_MINUTE = 5
 TOMORROW_FETCH_HOUR = 14

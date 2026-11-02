@@ -26,8 +26,8 @@ from .helpers.coordinator import (
 # The component registers two platforms: the price sensors (sensor) and the
 # cheapest-X% indicators (binary_sensor). Binary sensors MUST be registered
 # via the binary_sensor platform: registering them through the sensor
-# platform would give them a sensor.* entity_id prefix, breaking automations
-# that target binary_sensor.* (found during harness testing).
+# platform would give them a sensor.* entity_id prefix, breaking
+# automations that target binary_sensor.*.
 PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
@@ -103,11 +103,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     tomorrow = TomorrowPriceCoordinator(hass, client)
     hass.data[DOMAIN][entry.entry_id] = {COORD_TODAY: today, COORD_TOMORROW: tomorrow}
 
-    # Two fetch moments per day (issue #64): today just after midnight, and
-    # tomorrow (day-ahead, published by the market around 14:00) in the
-    # afternoon so evening planning has the coming night available the same
-    # day. The day boundary also drops yesterday's day-ahead set so it can
-    # never show as stale "tomorrow" data.
+    # Two fetch moments per day: today just after midnight, and tomorrow
+    # (day-ahead, published by the market around 14:00) in the afternoon so
+    # evening planning has the coming night available the same day. The day
+    # boundary also drops yesterday's day-ahead set so it can never show as
+    # stale "tomorrow" data.
     _bind_refresh_schedule(
         hass, entry, today, TODAY_FETCH_HOUR, TODAY_FETCH_MINUTE,
         on_scheduled_refresh=tomorrow.async_reset,
@@ -121,7 +121,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     await today.async_refresh()
     await tomorrow.async_refresh()
 
-    # Home Assistant moved from async_forward_entry_setup to async_forward_entry_setups.
+    # async_forward_entry_setups is the batch variant; older HA versions
+    # only support per-platform setup.
     if hasattr(hass.config_entries, "async_forward_entry_setups"):
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     else:

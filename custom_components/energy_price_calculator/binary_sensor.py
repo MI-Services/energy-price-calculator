@@ -5,7 +5,7 @@ among the cheapest X% of the day. Pure comparison, no calculation
 (ADR-0005): the rank is computed server-side. Registered via the
 binary_sensor platform so the entities get the binary_sensor.* prefix.
 
-State comes from the shared coordinator (one API call per day, see
+State comes from the shared today coordinator (see
 helpers/coordinator.py); the hour rollover re-renders without a fetch.
 """
 from __future__ import annotations
