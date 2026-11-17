@@ -9,6 +9,10 @@ on the server, so supplier changes and fixes reach you without updating this
 component. It fetches the finished prices and ranks from the server API and
 computes nothing itself.
 
+Looking for the matching hardware (smart boiler switches, energy
+modules, plug-and-play Home Assistant sets)? Visit the MI Services webshop:
+**[goedkopeuren.nl](https://goedkopeuren.nl)** (Dutch).
+
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=MI-Services&repository=energy-price-calculator&category=integration)
 
 ## Functionality
@@ -131,6 +135,16 @@ select your `energy_price_calculator` category sensor and the appliance switch â
 
 No `tax_breakdown` and no derived cheap/expensive flags: price composition
 and classification are server-side; this component only displays.
+
+## About MI Services
+
+This integration is developed and maintained by [MI Services B.V.](https://goedkopeuren.nl) - smart energy
+and Home Assistant solutions from the Netherlands. The webshop at
+[goedkopeuren.nl](https://goedkopeuren.nl) sells the hardware that pairs with this component: smart
+boiler switches, energy modules and plug-and-play Home Assistant sets that
+make optimal use of dynamic energy prices.
+
+Questions or issues? Open an issue in this repository.
 
 ## Design choices
 
