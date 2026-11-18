@@ -43,6 +43,15 @@ alt text or caption.
 Colors follow the webshop palette: duur `#d63638`, normaal `#C0762C`,
 goedkoop `#52796F`.
 
+Implementation notes (prijsgolf card): the axis key is `yaxis` (list), with a
+default `yaxis_id: prijs` via `all_series_config` and the hidden secondary
+axis `blok` for the band. Each of the 24 hourly series uses a `data_generator`
+that plots one point at the sensor's `starts_at` attribute with
+`parseFloat(state)`, so bars land on the hour they represent instead of on
+recorder state-change times. The binary cheapest-20% sensor is likewise
+converted to numeric 1/0 in its `data_generator` (history states parse as NaN
+otherwise). `group:` is not a supported series key and is not used.
+
 ## Thin client
 
 The dashboard only plots existing integration sensors

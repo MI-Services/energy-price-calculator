@@ -154,7 +154,9 @@ views:
             graph_span: 24h
             span:
               start: day
-            yaxes:
+            all_series_config:
+              yaxis_id: prijs
+            yaxis:
               - id: prijs
                 apex_config:
                   title:
@@ -169,7 +171,8 @@ views:
                 name: "00:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -182,7 +185,8 @@ views:
                 name: "01:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -195,7 +199,8 @@ views:
                 name: "02:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -208,7 +213,8 @@ views:
                 name: "03:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -221,7 +227,8 @@ views:
                 name: "04:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -234,7 +241,8 @@ views:
                 name: "05:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -247,7 +255,8 @@ views:
                 name: "06:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -260,7 +269,8 @@ views:
                 name: "07:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -273,7 +283,8 @@ views:
                 name: "08:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -286,7 +297,8 @@ views:
                 name: "09:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -299,7 +311,8 @@ views:
                 name: "10:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -312,7 +325,8 @@ views:
                 name: "11:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -325,7 +339,8 @@ views:
                 name: "12:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -338,7 +353,8 @@ views:
                 name: "13:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -351,7 +367,8 @@ views:
                 name: "14:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -364,7 +381,8 @@ views:
                 name: "15:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -377,7 +395,8 @@ views:
                 name: "16:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -390,7 +409,8 @@ views:
                 name: "17:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -403,7 +423,8 @@ views:
                 name: "18:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -416,7 +437,8 @@ views:
                 name: "19:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -429,7 +451,8 @@ views:
                 name: "20:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -442,7 +465,8 @@ views:
                 name: "21:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -455,7 +479,8 @@ views:
                 name: "22:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -468,7 +493,8 @@ views:
                 name: "23:00"
                 type: column
                 stroke_width: 0
-                group: uurprijs
+                data_generator: |
+                  return [[new Date(entity.attributes.starts_at).getTime(), parseFloat(entity.state)]];
                 float_precision: 3
                 color_threshold:
                   - value: 0.40
@@ -484,5 +510,8 @@ views:
                 opacity: 0.18
                 stroke_width: 0
                 yaxis_id: blok
+                data_generator: |
+                  const ts = entity.attributes.starts_at ? new Date(entity.attributes.starts_at).getTime() : Date.now();
+                  return [[ts, entity.state === 'on' ? 1 : 0]];
                 float_precision: 0
                 extend_to: now
