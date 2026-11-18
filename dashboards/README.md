@@ -9,10 +9,19 @@ gets at provisioning.
 1. Fetch the pinned file from the *installed* integration release on the
    customer Pi (the integration is installed via the Marketplace, so the file
    versions along with integration releases).
-2. Create the dashboard through the **Lovelace websocket API in storage mode**
-   (`lovelace/config/save`): title "Energy Price Calculator", url path
-   `energy-price-calculator`. Never via a `lovelace:` block in
-   `configuration.yaml` — YAML-mode dashboards are on the deprecation path.
+2. Create the dashboard through the **Lovelace websocket API in storage mode**,
+   in two steps:
+   a. `lovelace/dashboards/create` with title "Energy Price Calculator",
+      **`url_path: energy-price-calculator`**, `show_in_sidebar: true`,
+      icon `mdi:currency-eur` — this registers the dashboard (title, sidebar
+      entry, URL);
+   b. `lovelace/config/save` with the **same `url_path`** to store the views
+      from the YAML below.
+   Always pass `url_path` explicitly on both calls: `lovelace/config/save`
+   without a `url_path` targets the *default* dashboard (overwrite risk on a
+   fresh Pi), and saving to an unregistered `url_path` fails with
+   `config_not_found`. Never via a `lovelace:` block in `configuration.yaml` —
+   YAML-mode dashboards are on the deprecation path.
 3. Add the per-customer **dagrapport** view (hosted `rapport.svg` from the MI
    backend + notification history). This view is *not* in the public file: it
    depends on the MI backend and is provisioning-only.
@@ -48,9 +57,14 @@ default `yaxis_id: prijs` via `all_series_config` and the hidden secondary
 axis `blok` for the band. Each of the 24 hourly series uses a `data_generator`
 that plots one point at the sensor's `starts_at` attribute with
 `parseFloat(state)`, so bars land on the hour they represent instead of on
-recorder state-change times. The binary cheapest-20% sensor is likewise
-converted to numeric 1/0 in its `data_generator` (history states parse as NaN
-otherwise). `group:` is not a supported series key and is not used.
+recorder state-change times. The binary cheapest-20% sensor exposes only
+`rank` and `hour` (no `starts_at`), so the band deliberately does NOT use a
+`data_generator` (a generator bypasses recorder history and would emit a
+single point at `Date.now()`). Instead the band plots the binary sensor's
+recorder history as `type: area` + `curve: stepline` with a numeric
+`transform: "return x == 'on' ? 1 : 0;"` — raw on/off history states would
+`parseFloat` to NaN and render as null. `group:` is not a supported series
+key and is not used.
 
 ## Thin client
 
