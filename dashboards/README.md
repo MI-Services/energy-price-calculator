@@ -32,39 +32,33 @@ gets at provisioning.
 | --- | --- | --- |
 | Prijssensoren | `prijssensoren` | All hourly price sensors of today + cheapest hours of tomorrow |
 | Schakelpercentage | `schakelpercentage` | The 10-90% on/off sensors as tiles + explanation |
-| Prijsgolf | `prijsgolf` | All 24 hourly prices of today as bars, colored per price category, cheapest-20% block highlighted |
 
 Naming decision (18 nov 2026): visible tab titles are Dutch and
 self-explanatory; no "EPC"/"EMS"/"Showroom" abbreviations in any visible title,
 alt text or caption.
 
-## Prijsgolf: ApexCharts + fallback
+## Removed: Prijsgolf view (21 nov 2026)
 
-- HA >= 2026.11: the `custom:apexcharts-card` is installed from the built-in
-  **Marketplace** (Settings > Marketplace). The provisioning pins the card
-  version through its update entity, so a customer Pi always runs the pinned
-  version (same version-pin policy as the webshop plugins). There is no HACS
-  installation step (HACS is blocked as a separate install from 2026.11).
-- HA < 2026.11 (no Marketplace custom cards): provisioning falls back to the
-  native `history-graph` with all 24 hourly sensors (see the comment inside the
-  prijsgolf view) — without the block highlight.
+The former `prijsgolf` view (24 hourly prices as ApexCharts bar chart with the
+cheapest-20% band) was removed: the data was redundant with the Prijssensoren
+view and the chart was not helpful. As a result the dashboard no longer uses the
+`custom:apexcharts-card`, so the HA >= 2026.11 Marketplace requirement for
+custom cards no longer applies to this dashboard (only native cards remain).
+The ApexCharts/fallback documentation below is kept for history:
 
-Colors follow the webshop palette: duur `#d63638`, normaal `#C0762C`,
-goedkoop `#52796F`.
-
-Implementation notes (prijsgolf card): the axis key is `yaxis` (list), with a
-default `yaxis_id: prijs` via `all_series_config` and the hidden secondary
-axis `blok` for the band. Each of the 24 hourly series uses a `data_generator`
-that plots one point at the sensor's `starts_at` attribute with
-`parseFloat(state)`, so bars land on the hour they represent instead of on
-recorder state-change times. The binary cheapest-20% sensor exposes only
-`rank` and `hour` (no `starts_at`), so the band deliberately does NOT use a
-`data_generator` (a generator bypasses recorder history and would emit a
-single point at `Date.now()`). Instead the band plots the binary sensor's
-recorder history as `type: area` + `curve: stepline` with a numeric
-`transform: "return x == 'on' ? 1 : 0;"` — raw on/off history states would
-`parseFloat` to NaN and render as null. `group:` is not a supported series
-key and is not used.
+- The card was installed from the built-in **Marketplace** (HA >= 2026.11), with
+  the card version pinned through its update entity; on older HA the
+  provisioning fell back to a native `history-graph` with all 24 hourly sensors.
+- Colors followed the webshop palette: duur `#d63638`, normaal `#C0762C`,
+  goedkoop `#52796F`.
+- Implementation notes (for reference): the axis key was `yaxis` (list) with a
+  default `yaxis_id: prijs` via `all_series_config` and a hidden secondary axis
+  `blok` for the band. Each hourly series used a `data_generator` plotting one
+  point at the sensor's `starts_at` attribute with `parseFloat(state)`. The
+  binary cheapest-20% sensor exposed only `rank` and `hour` (no `starts_at`),
+  so the band deliberately did NOT use a `data_generator` and instead plotted
+  recorder history as `type: area` + `curve: stepline` with a numeric
+  `transform: "return x == 'on' ? 1 : 0;"`.
 
 ## Thin client
 
@@ -72,9 +66,3 @@ The dashboard only plots existing integration sensors
 (`sensor.uurprijs_HH_00`, `sensor.huidige_uurprijs`,
 `binary_sensor.goedkoopste_<pct>_van_de_dag`,
 `sensor.goedkoopste_uren_morgen_<pct>`). No price logic lives in HA.
-
-## Requirement
-
-Customer Pis must run **HA >= 2026.11** before the provisioning feature rolls
-out (Marketplace dependency). This is documented as a rollout dependency in the
-deployment README of dynamic-energy-pricing.
